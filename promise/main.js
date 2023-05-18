@@ -83,19 +83,18 @@ const response = fetch("https://restcountries.com/v3.1/name/india", {
     "Content-Type": "application/json",
   },
 })
-  .then((res) => res.json())
+  .then((res) => {
+    return res.json();
+  })
   .then((data) => {
     return data;
   })
   .catch((err) => {
     return new Error("Error:", err);
   })
-  .finally(() =>
-    console.log(
-      "this will run regardless the promise gets resolved or rejected."
-    )
-  );
-
+  .finally(() => {
+    return "this will run regardless the promise gets resolved or rejected.";
+  });
 
 // promise.then(
 //   (result) => {
@@ -105,6 +104,9 @@ const response = fetch("https://restcountries.com/v3.1/name/india", {
 //     console.error(error);
 //   }
 // );
+
+// We let the promise decide what has to be done with result
+response.then(console.log);
 
 promise.catch((err) => {
   console.error(err);
@@ -133,3 +135,21 @@ altLoadScriptPromise.then(
     console.log(error);
   }
 );
+
+// Promise chaining using fetch example
+const userApi = fetch(
+  "https://javascript.info/article/promise-chaining/user.json"
+)
+  .then((response) => {
+    return response.json();
+  })
+  .then((user) => fetch(`https://api.github.com/users/${user.name}`))
+  .then((response) => response.json())
+  .then((githubUser) => {
+    let img = document.createElement("img");
+    img.src = githubUser.avatar_url;
+    img.className = "promise-avatar-example";
+    document.body.append(img);
+
+    setTimeout(() => img.remove(), 3000); // (*)
+  });
