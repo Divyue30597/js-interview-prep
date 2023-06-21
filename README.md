@@ -1396,3 +1396,250 @@ console.log(
 `
 );
 ```
+
+## OOPS in JS
+
+In OOPS, class is an extensible program-code-template for creating objects, providing values for state (member variable) and implementation of behaviour (methods)
+
+```js
+class User {
+  constructor(name) {
+    this.name = name;
+  }
+
+  sayHi() {
+    console.log(this.name);
+  }
+}
+```
+
+## `this`, bind, call and apply
+
+- `this` is a reference to an object.
+- The object that `this` is referring to can vary
+  - **implicitly** based on whether it is global, or an object, or in a constructor, and can also vary
+  - **explicitly** based on usage of the `Function` prototype methods `bind`, `call` and `apply`.
+
+### Implicit Context of `this`
+
+The four main concepts the value of `this` can be implicitly inferred:
+
+- the global context
+- as a method within an object
+- as a constructor on a function or class
+- as a DOM event handler
+
+#### Global Context
+
+In global context, `this` refers to the **global object**.
+
+- In browser, the global context is **`window`**.
+- In Node.JS, the global context is **`global`**.
+
+**NOTE:** A **top level function** retain the **`this`** reference of the global object.
+
+```js
+function printThis() {
+  console.log(this);
+}
+
+printThis(); // prints Window object
+```
+
+Now using `use strict`, the `this` withing the function on the global context will be `undefined`.
+
+```js
+"use strict";
+
+function printThis() {
+  console.log(this);
+}
+
+printThis(); // undefined
+```
+
+#### A method within an object
+
+A method is a task that an object can perform. A method uses `this` to refer to the properties of the object.
+
+- Another way of thinking about `this` is, it refers to the object on the left side of the dot when calling a method.
+
+```js
+const america = {
+  name: "The united states of america",
+  yearFounded: 1776,
+
+  describe: function () {
+    console.log(`${this.name} was founded in year ${this.year}`);
+  },
+};
+
+america.describe(); // The united states of america was founded in year undefined
+```
+
+For nested objects
+
+```js
+const america = {
+  name: "The united states of america",
+  yearFounded: 1776,
+
+  describe: function () {
+    console.log(`${this.name} was founded in year ${this.year}`);
+  },
+
+  detail: {
+    symbol: "eagle",
+    currency: "USD",
+    printDetails() {
+      console.log(
+        `The symbol is the ${this.symbol} and the currency is ${this.currency}`
+      );
+    },
+  },
+};
+
+america.detail.printDetails(); // The symbol is the eagle and the currency is USD
+```
+
+#### Function Constructor
+
+Using the `new` keyword, we can create an instance of the constructor function or the class. Function constructors were the standard way to initialize a user-defined object before the `class` syntax was introduced in the ECMAScript 2015 update to JavaScript.
+
+In the function constructor context, the `this` is bounded to the instance of the `Country`
+
+```js
+function Country(name, year) {
+  this.name = name;
+  this.year = year;
+
+  this.describe = function () {
+    console.log(`${this.name} was founded in year ${this.year}`);
+  };
+}
+const america = new Country("The United States of America", 1776);
+
+america.describe(); // The United States of America was founded in year 1776
+```
+
+#### A `class` constructor
+
+A constructor on a class acts the same as a constructor on a function.
+
+```js
+class Country {
+  constructor(name, year) {
+    this.name = name;
+    this.year = year;
+  }
+
+  describe = function () {
+    console.log(`${this.name} was founded in year ${this.year}`);
+  };
+}
+
+const america = new Country("The United States of America", 1776);
+
+america.describe(); // The United States of America was founded in year 1776
+```
+
+#### DOM Event Handler
+
+In the browser, there is a special `this` context for event handlers such as `addEventListener`, it refers to the `event.currentTarget`.
+
+Adding this code snippet to browser console, when clicked on the button, we get to see `this` refers to the targeted element, which is the element we added an event listener to.
+
+```js
+const button = document.createElement("button");
+button.textContent = "Click me";
+document.body.append(button);
+
+button.addEventListener("click", function (event) {
+  console.log(this);
+});
+```
+
+### Explicit Context of `this`
+
+Using `call`, `apply` and `bind`, we can explicitly determine the value of `this`.
+
+#### `call` and `apply`
+
+`call` and `apply` are very similar, they invoke a function with a specified `this` context, and optional arguments.
+
+- `call` requires the arguments to be passed one-by-one
+- `apply` takes the arguments as an array.
+
+```js
+const book = {
+  title: "Brave new world",
+  author: "Aldous Huxley",
+};
+
+function summary() {
+  console.log(`${this.title} was written by ${this.author}`);
+}
+
+summary(); // undefined was written by undefined
+```
+
+In the above code, since the `summary` and the `book` have no connection, invoking `summary` by itself will only print **`undefined`**, since `this` itself is **`undefined`**.
+
+Now if we use `apply` and `call` to invoke the `this` context of the `book` on the function.
+
+```js
+summary.call(book); // Brave new world was written by Aldous Huxley
+printThis.call(book);
+// or
+summary.apply(book); // Brave new world was written by Aldous Huxley
+printThis.apply(book);
+```
+
+Now by using the above code, there is a connection made between summary and the book.
+
+```js
+function longSummary(genre, year) {
+  console.log(
+    `${this.title} was written by ${this.author}. It is a ${genre} novel written in ${year}.`
+  );
+}
+```
+
+To use `call` and `apply` on the above function, we can use
+
+```js
+longSummary.apply(book, ["dystopian", 1932]); // for apply, the second argument has to be passed down as array.
+longSummary.call(book, "dystopian", 1932); // for call, the arguments has to be passed one-by-one.
+```
+
+**NOTE:** Both `call` and `apply` are one-time use methods - if you call the method with the `this` context it will have it, but the **original function will remain unchanged**.
+
+#### `bind`
+
+Sometimes, you might need to use a method over and over with the `this` context of **another object**, and in that case you could use the `bind` method to **create a brand new function** with an **explicitly bound this**.
+
+```js
+const braveNewWorldSummary = summary.bind(book);
+
+braveNewWorldSummary(); // Brave new world was written by Aldous Huxley
+```
+
+Using the same function, but with another object.
+
+```js
+const braveNewWorldSummary = summary.bind(book);
+
+braveNewWorldSummary(); // Brave new world was written by Aldous Huxley
+
+const book2 = {
+  title: "1982",
+  author: "George Orwell",
+};
+
+braveNewWorldSummary.bind(book2);
+braveNewWorldSummary(); // Brave new world was written by Aldous Huxley
+
+// Some testing
+const braveNewWorld = braveNewWorldSummary.bind(book2);
+braveNewWorld(); // Brave new world was written by Aldous Huxley
+```
